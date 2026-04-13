@@ -1,12 +1,12 @@
 <template>
-  <div class="min-h-screen p-6 md:p-12 max-w-6xl mx-auto">
+   <div class="min-h-screen p-6 md:p-12 max-w-6xl mx-auto">
     <!-- Header Section -->
     <header class="mb-12 animate-fade-in-down">
       <div class="flex items-center gap-3 mb-2">
         <div class="p-2.5 bg-primary text-white rounded-xl shadow-lg">
           <el-icon :size="24"><HomeFilled /></el-icon>
         </div>
-        <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">SmartHome Dashboard</h1>
+        <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Hệ thống Nhà Thông Minh</h1>
       </div>
       <p class="text-slate-500 font-medium ml-12">Chào mừng trở lại! Hệ thống của bạn đang hoạt động ổn định.</p>
     </header>
@@ -27,9 +27,9 @@
         <!-- Irrigation Control Card -->
         <device-card
           v-model="devices.irrigation.isOn"
-          title="Hệ Thống Tưới"
-          :icon="Drizzling"
-          on-text="Đang tưới nước"
+          title="Quạt"
+          :icon="WindPower"
+          on-text="Đang bật"
           off-text="Đã tắt"
           class="animate-slide-up-2"
         />
@@ -98,7 +98,7 @@
 import { reactive, onMounted, watch, ref, nextTick } from 'vue'
 import mqtt from 'mqtt'
 import * as echarts from 'echarts'
-import { HomeFilled, Sunny, Drizzling, InfoFilled, TrendCharts } from '@element-plus/icons-vue'
+import { HomeFilled, Sunny, Drizzling, InfoFilled, TrendCharts, WindPower } from '@element-plus/icons-vue'
 import DeviceCard from './components/DeviceCard.vue'
 import { sensorHistory, addDataPoint } from './utils/sensorStore'
 
@@ -283,7 +283,7 @@ onMounted(() => {
 })
 </script>
 
-<style>
+<style scoped>
 /* Custom Animations */
 @keyframes fadeInDown {
   from { opacity: 0; transform: translateY(-20px); }

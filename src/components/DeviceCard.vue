@@ -28,6 +28,16 @@
             <div class="water-drop drop-3"></div>
           </div>
 
+          <!-- Wind Blowing Animation -->
+          <div 
+            v-if="modelValue && title.toLowerCase().includes('quạt')"
+            class="absolute inset-0 -z-10"
+          >
+            <div class="wind-line line-1"></div>
+            <div class="wind-line line-2"></div>
+            <div class="wind-line line-3"></div>
+          </div>
+
           <el-icon :size="28">
             <component :is="icon" />
           </el-icon>
@@ -129,4 +139,40 @@ defineEmits(['update:modelValue'])
 .drop-1 { --x: 1; --y: -1; }
 .drop-2 { --x: -1; --y: -1; }
 .drop-3 { --x: 0; --y: -1.5; }
+
+/* Fan Animation */
+.rotate-animation {
+  animation: spin 3s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Wind Blowing Animation */
+.wind-line {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 2px;
+  background: rgba(59, 130, 246, 0.4);
+  border-radius: 2px;
+  opacity: 0;
+}
+
+.line-1 { animation: blow 1.5s infinite; }
+.line-2 { animation: blow 1.5s infinite 0.5s; }
+.line-3 { animation: blow 1.5s infinite 1s; }
+
+@keyframes blow {
+  0% { transform: translate(-50%, -50%) scaleX(0.1); opacity: 0; }
+  50% { opacity: 0.8; }
+  100% { transform: translate(calc(-50% + 40px), calc(-50% + (var(--y, 0) * 20px))) scaleX(1); opacity: 0; }
+}
+
+.line-1 { --y: -0.5; }
+.line-2 { --y: 0; }
+.line-3 { --y: 0.5; }
 </style>
