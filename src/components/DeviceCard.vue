@@ -1,94 +1,69 @@
 <template>
-  <el-card 
-    class="device-card transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl"
-    :body-style="{ padding: '24px' }"
+  <div 
+    class="glass-card p-6 transition-all duration-300 group hover:scale-[1.03] hover:shadow-cyan-500/10 cursor-pointer"
+    :class="[modelValue ? 'border-primary/50 bg-primary/5 shadow-primary/20' : 'border-white/40 shadow-slate-200/50']"
+    @click="$emit('update:modelValue', !modelValue)"
   >
-    <div class="flex items-center justify-between mb-6">
-      <div class="flex items-center gap-4">
-        <!-- Icon Container with Dynamic Color -->
-        <div 
-          :class="[
-            'relative p-3 rounded-2xl transition-all duration-500 z-10',
-            modelValue ? 'bg-primary-light text-white shadow-lg shadow-primary-light/30' : 'bg-slate-100 text-slate-400'
-          ]"
-        >
-          <!-- Light Glow Animation -->
-          <div 
-            v-if="modelValue && title.toLowerCase().includes('đèn')"
-            class="absolute inset-0 bg-yellow-400/30 rounded-2xl blur-xl animate-pulse -z-10"
-          ></div>
-          
-          <!-- Water Ripple / Spray Animation -->
-          <div 
-            v-if="modelValue && title.toLowerCase().includes('tưới')"
-            class="absolute inset-0 -z-10"
-          >
-            <div class="water-drop drop-1"></div>
-            <div class="water-drop drop-2"></div>
-            <div class="water-drop drop-3"></div>
-          </div>
-
-          <!-- Wind Blowing Animation -->
-          <div 
-            v-if="modelValue && title.toLowerCase().includes('quạt')"
-            class="absolute inset-0 -z-10"
-          >
-            <div class="wind-line line-1"></div>
-            <div class="wind-line line-2"></div>
-            <div class="wind-line line-3"></div>
-          </div>
-
-          <el-icon :size="28">
-            <component :is="icon" />
-          </el-icon>
-        </div>
-        
-        <div class="z-10">
-          <h3 class="text-lg font-bold text-slate-800 m-0">{{ title }}</h3>
-          <p 
-            :class="[
-              'text-sm font-medium mt-1 transition-colors duration-300',
-              modelValue ? 'text-primary' : 'text-slate-400'
-            ]"
-          >
-            {{ modelValue ? onText : offText }}
-          </p>
-        </div>
+    <div class="flex items-start justify-between mb-8">
+      <div 
+        class="p-4 rounded-2xl transition-all duration-500"
+        :class="[
+          modelValue 
+            ? 'bg-primary text-white shadow-lg shadow-primary/40' 
+            : 'bg-slate-100 text-slate-400 group-hover:bg-slate-200 group-hover:text-slate-500'
+        ]"
+      >
+        <component 
+          :is="icon" 
+          :size="28" 
+          :class="{ 'animate-spin-slow': modelValue && title.toLowerCase().includes('quạt') }"
+        />
       </div>
 
-      <!-- Control Switch -->
-      <el-switch
-        :model-value="modelValue"
-        @update:model-value="$emit('update:modelValue', $event)"
-        class="custom-switch"
-        style="--el-switch-on-color: #4f46e5"
-      />
+      <!-- Custom Switch -->
+      <div 
+        class="w-12 h-6 rounded-full relative transition-colors duration-300"
+        :class="modelValue ? 'bg-primary' : 'bg-slate-200'"
+      >
+        <div 
+          class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 shadow-sm"
+          :class="{ 'translate-x-6': modelValue }"
+        ></div>
+      </div>
     </div>
 
-    <!-- Status Indicator Bar -->
-    <div class="mt-4 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-      <div 
-        :class="[
-          'h-full transition-all duration-500 ease-out rounded-full',
-          modelValue ? 'w-full bg-primary' : 'w-0 bg-slate-300'
-        ]"
-      />
+    <div>
+      <h3 class="text-lg font-bold text-slate-800 mb-1">{{ title }}</h3>
+      <div class="flex items-center gap-2">
+        <span 
+          class="w-1.5 h-1.5 rounded-full"
+          :class="modelValue ? 'bg-primary animate-pulse' : 'bg-slate-500'"
+        ></span>
+        <span 
+          class="text-sm font-medium transition-colors"
+          :class="modelValue ? 'text-primary' : 'text-slate-500'"
+        >
+          {{ modelValue ? onText : offText }}
+        </span>
+      </div>
     </div>
-  </el-card>
+  </div>
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue'
+
+const props = defineProps({
   title: String,
-  icon: Object,
+  icon: [Object, Function],
   modelValue: Boolean,
   onText: {
     type: String,
-    default: 'Đang bật'
+    default: 'Active'
   },
   offText: {
     type: String,
-    default: 'Đã tắt'
+    default: 'Inactive'
   }
 })
 
@@ -96,52 +71,7 @@ defineEmits(['update:modelValue'])
 </script>
 
 <style scoped>
-.device-card {
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
-}
-
-.custom-switch :deep(.el-switch__core) {
-  height: 24px;
-  border-radius: 12px;
-}
-
-.custom-switch :deep(.el-switch__action) {
-  width: 20px;
-  height: 20px;
-}
-
-/* Water Spray Animation */
-.water-drop {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 6px;
-  height: 6px;
-  background: #3b82f6;
-  border-radius: 50%;
-  opacity: 0;
-  transform: translate(-50%, -50%);
-}
-
-.drop-1 { animation: spray 1.5s infinite; }
-.drop-2 { animation: spray 1.5s infinite 0.5s; }
-.drop-3 { animation: spray 1.5s infinite 1s; }
-
-@keyframes spray {
-  0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
-  50% { opacity: 0.8; }
-  100% { transform: translate(calc(-50% + (var(--x, 0) * 40px)), calc(-50% + (var(--y, 0) * 40px))) scale(2); opacity: 0; }
-}
-
-.drop-1 { --x: 1; --y: -1; }
-.drop-2 { --x: -1; --y: -1; }
-.drop-3 { --x: 0; --y: -1.5; }
-
-/* Fan Animation */
-.rotate-animation {
+.animate-spin-slow {
   animation: spin 3s linear infinite;
 }
 
@@ -149,30 +79,4 @@ defineEmits(['update:modelValue'])
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
-
-/* Wind Blowing Animation */
-.wind-line {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 20px;
-  height: 2px;
-  background: rgba(59, 130, 246, 0.4);
-  border-radius: 2px;
-  opacity: 0;
-}
-
-.line-1 { animation: blow 1.5s infinite; }
-.line-2 { animation: blow 1.5s infinite 0.5s; }
-.line-3 { animation: blow 1.5s infinite 1s; }
-
-@keyframes blow {
-  0% { transform: translate(-50%, -50%) scaleX(0.1); opacity: 0; }
-  50% { opacity: 0.8; }
-  100% { transform: translate(calc(-50% + 40px), calc(-50% + (var(--y, 0) * 20px))) scaleX(1); opacity: 0; }
-}
-
-.line-1 { --y: -0.5; }
-.line-2 { --y: 0; }
-.line-3 { --y: 0.5; }
 </style>

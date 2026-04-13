@@ -1,63 +1,57 @@
 <template>
-  <el-card 
-    class="sensor-card glass-panel state-transition hover:scale-[1.02]"
-    :body-style="{ padding: '20px' }"
-  >
-    <div class="flex items-center gap-4">
-      <div 
-        :class="[
-          'p-3 rounded-xl transition-all duration-500',
-          active ? 'bg-primary/10 text-primary animate-glow' : 'bg-slate-100 text-slate-400'
-        ]"
-      >
-        <el-icon :size="24">
-          <component :is="icon" />
-        </el-icon>
-      </div>
-      
-      <div class="flex-1">
-        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">{{ label }}</p>
-        <div class="flex items-baseline gap-1">
-          <span class="text-2xl font-black text-slate-900 tracking-tight tabular-nums transition-all duration-300">
-            {{ displayValue }}
-          </span>
-          <span class="text-xs font-bold text-slate-400">{{ unit }}</span>
-        </div>
-      </div>
-
-      <!-- Trend indicator (Mock) -->
-      <div class="flex flex-col items-center gap-1">
-        <div 
-          :class="[
-            'text-[10px] font-bold px-1.5 py-0.5 rounded-full',
-            trend === 'up' ? 'text-green-400 bg-green-400/10' : 'text-blue-400 bg-blue-400/10'
-          ]"
-        >
-          {{ trend === 'up' ? '↑' : '↓' }}
-        </div>
+  <div class="glass-card p-6 flex items-center gap-5 transition-all duration-300 hover:bg-slate-50">
+    <div 
+      class="p-3.5 rounded-2xl bg-slate-100 text-slate-400 group-hover:text-slate-600 transition-colors"
+      :class="[active ? colorClass : 'text-slate-300']"
+    >
+      <component :is="icon" :size="24" />
+    </div>
+    
+    <div class="flex-1">
+      <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">{{ label }}</p>
+      <div class="flex items-baseline gap-1.5">
+        <span class="text-3xl font-black text-slate-800 tabular-nums">
+          {{ displayValue }}
+        </span>
+        <span class="text-sm font-bold text-slate-500">{{ unit }}</span>
       </div>
     </div>
-  </el-card>
+
+    <!-- Trend Indicator -->
+    <div class="flex flex-col items-center">
+      <div 
+        class="text-[10px] font-black px-2 py-1 rounded-lg flex items-center gap-1"
+        :class="[trend === 'up' ? 'text-cyan-400 bg-cyan-400/10' : 'text-purple-400 bg-purple-400/10']"
+      >
+        <TrendingUp v-if="trend === 'up'" :size="12" />
+        <TrendingDown v-else :size="12" />
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
 import { ref, watch, onMounted } from 'vue'
+import { TrendingUp, TrendingDown } from 'lucide-vue-next'
 
 const props = defineProps({
   label: String,
   value: [Number, String],
   unit: String,
-  icon: Object,
+  icon: [Object, Function],
   active: {
     type: Boolean,
     default: true
+  },
+  colorClass: {
+    type: String,
+    default: 'text-primary'
   }
 })
 
 const displayValue = ref(0)
 const trend = ref('up')
 
-// Smooth value transition logic
 watch(() => props.value, (newVal, oldVal) => {
   const start = parseFloat(displayValue.value) || 0
   const end = parseFloat(newVal) || 0
@@ -65,13 +59,16 @@ watch(() => props.value, (newVal, oldVal) => {
   trend.value = end >= start ? 'up' : 'down'
   
   // Quick animation to the new value
-  let startTime = null
-  const duration = 500 // ms
+  const duration = 500
+  const startTime = performance.now()
   
-  const animate = (timestamp) => {
-    if (!startTime) startTime = timestamp
-    const progress = Math.min((timestamp - startTime) / duration, 1)
-    const current = start + (end - start) * progress
+  const animate = (time) => {
+    const elapsed = time - startTime
+    const progress = Math.min(elapsed / duration, 1)
+    
+    // Ease out expo
+    const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress)
+    const current = start + (end - start) * ease
     
     displayValue.value = current.toFixed(1)
     
@@ -89,26 +86,3 @@ onMounted(() => {
   displayValue.value = parseFloat(props.value) || 0
 })
 </script>
-
-<style scoped>
-.sensor-card {
-  border-radius: 1.25rem;
-  overflow: hidden;
-}
-
-:deep(.el-card__body) {
-  position: relative;
-  z-index: 1;
-}
-
-.sensor-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.05), transparent 60%);
-  pointer-events: none;
-}
-</style>
