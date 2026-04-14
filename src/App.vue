@@ -153,6 +153,7 @@ const MQTT_CONFIG = {
 
 const connectionStatus = ref('Disconnected')
 let client = null
+let heartbeatInterval = null
 
 // Real-time sensor display
 const sensorData = reactive({
@@ -212,24 +213,69 @@ const connectMQTT = () => {
 
   client.on('connect', () => {
     connectionStatus.value = 'Connected'
-    client.subscribe(['esp32/nhietdo', 'esp32/doam', 'esp32/anhsang'], (err) => {
-      if (!err) console.log('Subscribed to sensor topics')
+    const topics = [
+      'esp32/nhietdo', 
+      'esp32/doam', 
+      'esp32/anhsang',
+      devices.light.topic,
+      devices.irrigation.topic,
+      'esp32/auto'
+    ]
+    client.subscribe(topics, (err) => {
+      if (!err) console.log('Subscribed to all topics')
     })
   })
 
   client.on('message', (topic, message) => {
-    const val = parseFloat(message.toString())
-    if (isNaN(val)) return
+    try {
+      const payloadString = message.toString()
+      
+      // Handle numeric sensor data
+      if (topic.startsWith('esp32/')) {
+        const val = parseFloat(payloadString)
+        if (!isNaN(val)) {
+          if (topic === 'esp32/nhietdo') {
+            sensorData.temperature = val.toFixed(1)
+            addDataPoint('temperature', val)
+            return
+          } else if (topic === 'esp32/doam') {
+            sensorData.humidity = val.toFixed(1)
+            addDataPoint('humidity', val)
+            return
+          } else if (topic === 'esp32/anhsang') {
+            sensorData.light = val.toFixed(1)
+            addDataPoint('light', val)
+            return
+          }
+        }
+      }
 
-    if (topic === 'esp32/nhietdo') {
-      sensorData.temperature = val.toFixed(1)
-      addDataPoint('temperature', val)
-    } else if (topic === 'esp32/doam') {
-      sensorData.humidity = val.toFixed(1)
-      addDataPoint('humidity', val)
-    } else if (topic === 'esp32/anhsang') {
-      sensorData.light = val.toFixed(1)
-      addDataPoint('light', val)
+      // Handle JSON device status
+      const data = JSON.parse(payloadString)
+      
+      // Handle Auto Mode Sync
+      if (topic === 'esp32/auto' && data.hasOwnProperty('auto')) {
+        if (isAutoMode.value !== data.auto) {
+          isAutoMode.value = data.auto
+        }
+        return
+      }
+
+      // Sync Light/Fan ONLY if NOT in Auto Mode
+      if (!isAutoMode.value) {
+        if (topic === devices.light.topic && data.hasOwnProperty(devices.light.key)) {
+          if (devices.light.isOn !== data[devices.light.key]) {
+            devices.light.isOn = data[devices.light.key]
+          }
+        } else if (topic === devices.irrigation.topic && data.hasOwnProperty(devices.irrigation.key)) {
+          if (devices.irrigation.isOn !== data[devices.irrigation.key]) {
+            devices.irrigation.isOn = data[devices.irrigation.key]
+          }
+        }
+      }
+    } catch (e) {
+      // Not JSON or other error
+      console.warn('Received non-standard message on topic:', topic, message.toString())
     }
   })
 
@@ -267,6 +313,27 @@ watch(isAutoMode, (newVal) => {
 
 onMounted(() => {
   connectMQTT()
+  
+  // Heartbeat every 3 seconds
+  heartbeatInterval = setInterval(() => {
+    if (client && client.connected) {
+      if (isAutoMode.value) {
+        // Only heartbeat "auto" when active
+        publishEvent('esp32/auto', { auto: true })
+      } else {
+        // Full heartbeat when auto is inactive
+        publishEvent(devices.light.topic, { [devices.light.key]: devices.light.isOn })
+        publishEvent(devices.irrigation.topic, { [devices.irrigation.key]: devices.irrigation.isOn })
+        publishEvent('esp32/auto', { auto: false })
+      }
+    }
+  }, 3000)
+})
+
+import { onUnmounted } from 'vue'
+onUnmounted(() => {
+  if (heartbeatInterval) clearInterval(heartbeatInterval)
+  if (client) client.end()
 })
 </script>
 
