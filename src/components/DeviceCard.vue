@@ -1,8 +1,11 @@
 <template>
   <div 
     class="glass-card p-6 transition-all duration-300 group hover:scale-[1.03] hover:shadow-cyan-500/10 cursor-pointer"
-    :class="[modelValue ? 'border-primary/50 bg-primary/5 shadow-primary/20' : 'border-white/40 shadow-slate-200/50']"
-    @click="$emit('update:modelValue', !modelValue)"
+    :class="[
+      modelValue ? 'border-primary/50 bg-primary/5 shadow-primary/20' : 'border-white/40 shadow-slate-200/50',
+      disabled ? 'opacity-40 pointer-events-none grayscale-[0.5]' : ''
+    ]"
+    @click="!disabled && $emit('update:modelValue', !modelValue)"
   >
     <div class="flex items-start justify-between mb-8">
       <div 
@@ -64,6 +67,10 @@ const props = defineProps({
   offText: {
     type: String,
     default: 'Inactive'
+  },
+  disabled: {
+    type: Boolean,
+    default: false
   }
 })
 

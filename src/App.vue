@@ -76,6 +76,7 @@
             on-text="Đang bật"
             off-text="Đã tắt"
             class="animate-slide-up-1"
+            :disabled="isAutoMode"
           />
 
           <device-card
@@ -85,7 +86,25 @@
             on-text="Đang quay"
             off-text="Đã dừng"
             class="animate-slide-up-2"
+            :disabled="isAutoMode"
           />
+
+          <!-- Auto Mode Partition -->
+          <div class="pt-4 mt-4 border-t border-slate-200/50">
+            <div class="flex items-center gap-2 mb-4 px-2">
+              <Activity :size="18" class="text-accent-purple" />
+              <h2 class="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Chế độ thông minh</h2>
+            </div>
+            
+            <device-card
+              v-model="isAutoMode"
+              title="Chế độ tự động"
+              :icon="Bot"
+              on-text="Đang bật"
+              off-text="Đã tắt"
+              class="animate-slide-up-3"
+            />
+          </div>
         </div>
 
         <!-- Main Analytics Area -->
@@ -114,7 +133,8 @@ import {
   Zap, 
   Plus,
   Activity,
-  AlertCircle
+  AlertCircle,
+  Bot
 } from 'lucide-vue-next'
 import DeviceCard from './components/DeviceCard.vue'
 import SensorCard from './components/SensorCard.vue'
@@ -140,6 +160,8 @@ const sensorData = reactive({
   humidity: 0,
   light: 0
 })
+
+const isAutoMode = ref(false)
 
 // Status styles mapping
 const connectionStatusText = computed(() => {
@@ -233,6 +255,14 @@ watch(() => devices.light.isOn, (newVal) => {
 
 watch(() => devices.irrigation.isOn, (newVal) => {
   publishEvent(devices.irrigation.topic, { [devices.irrigation.key]: newVal })
+})
+
+watch(isAutoMode, (newVal) => {
+  publishEvent('esp32/auto', { auto: newVal })
+  if (newVal) {
+    devices.light.isOn = false
+    devices.irrigation.isOn = false
+  }
 })
 
 onMounted(() => {
