@@ -8,7 +8,7 @@
 
 // --- CẤU HÌNH WIFI (KẾT NỐI TRỰC TIẾP) ---
 const char* ssid = "703 - 704 - 719";      // Điền tên WiFi nhà bạn vào đây
-const char* password = "23456789"; // Điền mật khẩu WiFi vào đây
+const char* password = "23456789";         // Điền mật khẩu WiFi vào đây
 
 // --- CẤU HÌNH HIVEMQ CLOUD ---
 const char* mqtt_server = "41dbbd06096c41eaa83d9d7dac2297f8.s1.eu.hivemq.cloud";
@@ -66,28 +66,26 @@ void callback(char* topic, byte* payload, unsigned int length) {
   // XỬ LÝ ĐIỀU KHIỂN THỦ CÔNG (ĐÈN)
   if (String(topic) == topic_light) {
     if (doc.containsKey("led")) {
-      isAutoMode = false; // TỰ ĐỘNG TẮT CHẾ ĐỘ AUTO ĐỂ ƯU TIÊN LỆNH THỦ CÔNG
       bool ledState = doc["led"];
       if (ledState == false) {
         digitalWrite(LED1_PIN, LOW);
-        Serial.println("=> (MQTT) Đã TẮT LED Xanh (D27). Chế độ Auto hiện bị ngắt.");
+        Serial.println("=> (MQTT) Đã TẮT LED Xanh (D27).");
       } else {
         digitalWrite(LED1_PIN, HIGH);
-        Serial.println("=> (MQTT) Đã BẬT LED Xanh (D27). Chế độ Auto hiện bị ngắt.");
+        Serial.println("=> (MQTT) Đã BẬT LED Xanh (D27).");
       }
     }
   }
   // XỬ LÝ ĐIỀU KHIỂN THỦ CÔNG (BƠM/RELAY)
   else if (String(topic) == topic_water) {
     if (doc.containsKey("water")) {
-      isAutoMode = false; // TỰ ĐỘNG TẮT CHẾ ĐỘ AUTO ĐỂ ƯU TIÊN LỆNH THỦ CÔNG
       bool waterState = doc["water"];
       if (waterState == false) {
         digitalWrite(LED2_PIN, LOW);
-        Serial.println("=> (MQTT) Đã TẮT Relay (D12). Chế độ Auto hiện bị ngắt.");
+        Serial.println("=> (MQTT) Đã TẮT Relay (D12).");
       } else {
         digitalWrite(LED2_PIN, HIGH);
-        Serial.println("=> (MQTT) Đã BẬT Relay (D12). Chế độ Auto hiện bị ngắt.");
+        Serial.println("=> (MQTT) Đã BẬT Relay (D12).");
       }
     }
   }
@@ -219,7 +217,7 @@ void loop() {
             Serial.println("=> (AUTO) Nhiệt độ > 30°C: Đã tự động BẬT Relay (D12).");
           }
         } 
-        else if (t < 29.0) { // Thiết lập ngưỡng < 29°C để tắt, tránh tình trạng bơm bật/tắt liên tục khi nhiệt độ quanh mức 30°C
+        else if (t < 29.0) { // Thiết lập ngưỡng < 29°C để tắt
           if (digitalRead(LED2_PIN) == HIGH) {
             digitalWrite(LED2_PIN, LOW);
             Serial.println("=> (AUTO) Nhiệt độ < 29°C: Đã tự động TẮT Relay (D12).");
