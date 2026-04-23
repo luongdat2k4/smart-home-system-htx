@@ -71,7 +71,7 @@
           
           <device-card
             v-model="devices.light.isOn"
-            title="Đèn Phòng Khách"
+            title="Đèn Sân Vườn"
             :icon="Lightbulb"
             on-text="Đang bật"
             off-text="Đã tắt"
